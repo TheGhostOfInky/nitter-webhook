@@ -1,0 +1,5 @@
+/__pycache__
+variables.toml
+config.toml
+*.log
+*.db
