@@ -2,7 +2,7 @@ import os, sched, datetime, logging
 from random import randint
 from itertools import islice
 from typing import Generator, Iterable, TypeVar
-from twitter_wrapper import TweetStream
+from nitter_wrapper import TweetStream
 from discord_webhook import Webhook
 from sqlite3_dbdriver import DB
 try:
@@ -38,7 +38,7 @@ rand_range: int = config.get("rand-range", 100)
 def post() -> None:
     global last_time
 
-    tweets = TweetStream(user_name=user_name, count=limit)
+    tweets = TweetStream(user_name)
     newer = tweets.newer_than(last_time)
 
     now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -67,7 +67,7 @@ def main(scheduler: sched.scheduler) -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        filename="twitter-webhook.log",
+        filename="nitter-webhook.log",
         filemode="a",
         format="%(asctime)s:%(levelname)s:%(name)s: %(message)s",
         level=logging.INFO

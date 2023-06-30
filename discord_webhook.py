@@ -1,5 +1,5 @@
 from typing import Any
-from twitter_wrapper import Tweet
+from nitter_wrapper import Tweet
 import requests, re
 
 FOOTER = {
@@ -17,18 +17,17 @@ def create_fields(tweet: Tweet) -> list[dict[str, str]]:
     fields: list[dict[str, str]] = []
     images, urls = tweet.images, tweet.urls
 
-    if images:
-        for i in images[1::]:
-            fields.append({
-                "name": "Additional image:",
-                "value": i
-            })
-    if urls:
-        for i in urls:
-            fields.append({
-                "name": "Link:",
-                "value": i
-            })
+    for i in images[1::]:
+        fields.append({
+            "name": "Additional image:",
+            "value": i
+        })
+
+    for i in urls:
+        fields.append({
+            "name": "Link:",
+            "value": i
+        })
 
     return fields
 
@@ -65,7 +64,7 @@ class Webhook:
             }
 
         if not tweet.retweeted:
-            embed["url"] = f"https://twitter.com/{self.username}/status/{tweet.id}"
+            embed["url"] = tweet.link.replace("nitter.net", "twitter.com").split("#")[0]
 
         return embed
 
