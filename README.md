@@ -1,4 +1,4 @@
-# Twitter Discord webhook
+<!-- # Twitter Discord webhook
 
 This repo provides the code to locally host an instance of a Twitter crawler
 that posts new tweets (including replies) to a selected Discord (or compatible)
@@ -20,4 +20,11 @@ To setup the crawler:
   `variables.toml` file.
 
 Once this is finished you can run `python main.py` and your webhook should come
-to life with the tweets of the account you selected in the `config.toml`.
+to life with the tweets of the account you selected in the `config.toml`. -->
+
+# Archive ONLY
+
+Due to Twitter changing policy to prevent guest users (not logged in) from
+viewing tweets it is no longer possible to scrape tweets without botting an
+account, which is more risk than I personally believe is worth so this is no
+longer functional
