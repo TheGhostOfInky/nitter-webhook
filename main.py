@@ -30,9 +30,7 @@ last_time: datetime.datetime
 webhook: Webhook
 
 user_name: str = config["user-name"]
-limit: int = config.get("limit", 20)
-delay: int = config.get("delay", 550)
-rand_range: int = config.get("rand-range", 100)
+delay: int = config.get("delay", 600)
 
 
 def post() -> None:
@@ -56,8 +54,7 @@ def post() -> None:
 
 
 def main(scheduler: sched.scheduler) -> None:
-    l_delay = delay + randint(0, rand_range)
-    scheduler.enter(l_delay, 1, main, (scheduler,))
+    scheduler.enter(delay, 1, main, (scheduler,))
 
     try:
         post()

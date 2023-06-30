@@ -6,9 +6,5 @@ webhook-url = "https://discord.com/api/webhooks/1234/abcdef"
 pfp = ""
 # List of the roles you want pinged whenever a new Tweet is posted (str|list[str], optional)
 ping-roles = ["831832622455324683", "828641566100422707", "1016327044432400480"]
-# Limit of Tweets to fetch in each iteration (int, optional, defaults to 20)
-limit = 20
-# Base delay in seconds between fetching new Tweets from Twitter servers (int, optional, defaults to 550)
-delay = 550
-# Randomized range that is added to base delay, for additional spoofing, (int, optional, defaults to 100, 0 disables the randomness)
-rand_range = 100
+# Delay in seconds between fetching new Tweets from Twitter servers (int, optional, defaults to 600 [10 minutes])
+delay = 600
