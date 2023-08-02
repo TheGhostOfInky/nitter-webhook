@@ -4,6 +4,8 @@ user-name = "twitter"
 webhook-url = "https://discord.com/api/webhooks/1234/abcdef"
 # Link to the webhook's profile picture (str, optional)
 pfp = ""
+# Nitter instance to connect to (https://github.com/zedeus/nitter/wiki/Instances)
+instance = "https://nitter.net"
 # List of the roles you want pinged whenever a new Tweet is posted (str|list[str], optional)
 ping-roles = ["831832622455324683", "828641566100422707", "1016327044432400480"]
 # Delay in seconds between fetching new Tweets from Twitter servers (int, optional, defaults to 600 [10 minutes])

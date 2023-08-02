@@ -3,14 +3,14 @@ from nitter_wrapper import Tweet
 import requests, re
 
 FOOTER = {
-    "text": "Via Twitter",
-    "icon_url": "https://i.imgur.com/PFGs0WA.png"
+    "text": "Via 𝕏",
+    "icon_url": "https://i.imgur.com/2YLLWrw.png"
 }
 
 
 def clean_urls(inp: str) -> str:
     sub = re.sub(r"https?:\/\/\S+", "", inp)
-    return re.sub(r"@(\S+)", r"[@\1](https://twitter.com/\1)", sub)
+    return re.sub(r"@(\S+)", r"[@\1](https://x.com/\1)", sub)
 
 
 def create_fields(tweet: Tweet) -> list[dict[str, str]]:
@@ -36,24 +36,27 @@ class Webhook:
     url: str
     username: str
     pfp: str
-    ping_roles: list[str]
+    pings: str
+    instance: str
 
-    def __init__(self, url: str, username: str, pfp: str, ping_roles: str | list[str]) -> None:
+    def __init__(self, url: str, username: str,
+                 pfp: str, ping_roles: str | list[str],
+                 instance="https://nitter.net") -> None:
         self.username = username
         self.url = url
         self.pfp = pfp
+        self.instance = instance
 
         if isinstance(ping_roles, str):
-            self.ping_roles = [ping_roles]
+            self.pings = f"<@&{ping_roles}>"
         else:
-            self.ping_roles = ping_roles
+            self.pings = "".join([f"<@&{r}>" for r in ping_roles])
 
     def create_tweet_embed(self, tweet: Tweet) -> dict:
         embed: dict[str, Any] = {
-            "title": f"New tweet by @{self.username}",
             "description": clean_urls(tweet.text),
             "timestamp": tweet.time.isoformat(),
-            "color": 0x179cf0,
+            "color": 0xffffff,
             "footer": FOOTER,
             "fields": create_fields(tweet)
         }
@@ -63,18 +66,19 @@ class Webhook:
                 "url": tweet.images[0]
             }
 
-        if not tweet.retweeted:
-            embed["url"] = tweet.link.replace("nitter.net", "twitter.com").split("#")[0]
+        if tweet.retweeted:
+            embed["title"] = f"New retweet by @{self.username}"
+        else:
+            embed["title"] = f"New tweet by @{self.username}"
+            embed["url"] = tweet.link.replace(self.instance, "https://x.com").split("#")[0]
 
         return embed
 
     def post_to_webhook(self, tweets: list[Tweet]) -> None:
-        pings = [f"<@&{r}>" for r in self.ping_roles]
-
         params = {
-            "content": "".join(pings),
+            "content": self.pings,
             "embeds": [self.create_tweet_embed(x) for x in tweets],
-            "username": f"@{self.username} - Twitter",
+            "username": f"@{self.username} - 𝕏",
             "avatar_url": self.pfp
         }
 

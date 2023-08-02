@@ -31,12 +31,13 @@ webhook: Webhook
 
 user_name: str = config["user-name"]
 delay: int = config.get("delay", 600)
+instance: str = config.get("instance", "https://nitter.net")
 
 
 def post() -> None:
     global last_time
 
-    tweets = TweetStream(user_name)
+    tweets = TweetStream(user_name, instance)
     newer = tweets.newer_than(last_time)
 
     now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -82,7 +83,8 @@ if __name__ == "__main__":
     webhook = Webhook(
         config["webhook-url"], user_name,
         config.get("pfp", ""),
-        config.get("ping-roles", [])
+        config.get("ping-roles", []),
+        instance
     )
 
     scheduler = sched.scheduler()

@@ -6,7 +6,7 @@ from typing import Optional, cast
 FMT = r"%a, %d %b %Y %H:%M:%S %Z"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 }
 
 
@@ -90,8 +90,11 @@ class Tweet:
 class TweetStream:
     tweets: list[Tweet]
 
-    def __init__(self, name: str) -> None:
-        resp = requests.get(f"https://nitter.net/{name}/rss", headers=HEADERS)
+    def __init__(self, name: str, instance="https://nitter.net") -> None:
+        resp = requests.get(f"{instance}/{name}/rss", headers=HEADERS)
+        if resp.status_code > 299:
+            raise Exception(f"Got error response, code {resp.status_code}; {resp.text}")
+
         soup = BeautifulSoup(resp.text, "xml")
         items = cast(ResultSet[element.Tag], soup.find_all("item"))
         self.tweets = [Tweet(t) for t in items]
