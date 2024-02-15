@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Optional
 from nitter_wrapper import Tweet
+from urllib.parse import quote
 import requests, re
 
 FOOTER = {
@@ -8,12 +9,17 @@ FOOTER = {
 }
 
 
-def clean_urls(inp: str) -> str:
-    sub = re.sub(r"https?:\/\/\S+", "", inp)
-    return re.sub(r"@(\S+)", r"[@\1](https://x.com/\1)", sub)
+def clean_link(url: str, instance: str) -> str:
+    if instance in url:
+        return url\
+            .replace(instance, "x.com")\
+            .replace("http://", "https://")\
+            .split("#")[0]
+    else:
+        return url
 
 
-def create_fields(tweet: Tweet) -> list[dict[str, str]]:
+def create_fields(tweet: Tweet, instance: str) -> list[dict[str, str]]:
     fields: list[dict[str, str]] = []
     images, urls = tweet.images, tweet.urls
 
@@ -26,7 +32,7 @@ def create_fields(tweet: Tweet) -> list[dict[str, str]]:
     for i in urls:
         fields.append({
             "name": "Link:",
-            "value": i
+            "value": clean_link(i, instance)
         })
 
     return fields
@@ -52,11 +58,11 @@ class Webhook:
 
     def create_tweet_embed(self, tweet: Tweet, instance: str) -> dict:
         embed: dict[str, Any] = {
-            "description": clean_urls(tweet.text),
+            "description": tweet.text,
             "timestamp": tweet.time.isoformat(),
             "color": 0xffffff,
             "footer": FOOTER,
-            "fields": create_fields(tweet)
+            "fields": create_fields(tweet, instance)
         }
 
         if tweet.images:
@@ -65,13 +71,10 @@ class Webhook:
             }
 
         if tweet.retweeted:
-            embed["title"] = f"New retweet by @{self.username}"
+            embed["title"] = f"New repost by @{self.username}"
         else:
-            embed["title"] = f"New tweet by @{self.username}"
-            embed["url"] = tweet.link\
-                .replace(instance, "x.com")\
-                .replace("http://", "https://")\
-                .split("#")[0]
+            embed["title"] = f"New post by @{self.username}"
+            embed["url"] = clean_link(tweet.link, instance)
 
         return embed
 

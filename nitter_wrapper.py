@@ -1,6 +1,6 @@
 import datetime, pytz, requests
 from bs4 import BeautifulSoup, ResultSet, element
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 from typing import Optional, cast, TypedDict
 
 FMT = r"%a, %d %b %Y %H:%M:%S %Z"
@@ -96,6 +96,39 @@ def parse_prop(elm: element.Tag, prop: str) -> Optional[str]:
     return props
 
 
+def is_ping(href: str, text: str) -> Optional[str]:
+    if not text.startswith("@"):
+        return None
+
+    split = text.split("@")
+    if len(split) != 2:
+        return None
+
+    ping = split[1]
+
+    if ping not in href:
+        return None
+
+    return f"[@{ping}](https://x.com/{quote(ping)})"
+
+
+def is_hashtag(href: str, text: str) -> Optional[str]:
+    if not text.startswith("#") or "search?q=#" not in href:
+        return None
+
+    split = text.split("#")
+
+    if len(split) != 2:
+        return None
+
+    hashtag = split[1]
+
+    if hashtag not in href:
+        return None
+
+    return f"[#{hashtag}](https://x.com/hashtag/{quote(hashtag)})"
+
+
 def parse_desc(desc: str) -> tuple[str, list[str], list[str]]:
     soup = BeautifulSoup(unquote(desc), "lxml")
 
@@ -103,13 +136,32 @@ def parse_desc(desc: str) -> tuple[str, list[str], list[str]]:
         src := parse_prop(cast(element.Tag, i.extract()), "src")
     )]
 
-    link = [href for l in soup.find_all("a") if (
-        href := parse_prop(cast(element.Tag, l.extract()), "href")
-    )]
+    a_elms = soup.find_all("a")
+    links = []
+
+    for elm in a_elms:
+        href, a_text = cast(tuple[str, str], (elm.get("href"), elm.text))
+
+        if not href:
+            continue
+
+        if not a_text:
+            a_text = ""
+
+        if ping := is_ping(href, a_text):
+            elm.replace_with(ping)
+            continue
+
+        if hashtag := is_hashtag(href, a_text):
+            elm.replace_with(hashtag)
+            continue
+
+        links.append(href)
+        elm.extract()
 
     txt = [cast(str, x.text) for x in soup.find_all("p")]
 
-    return "\n".join(txt), link, img
+    return "\n".join(txt), links, img
 
 
 class Tweet:
