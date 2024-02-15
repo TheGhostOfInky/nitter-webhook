@@ -132,9 +132,11 @@ def is_hashtag(href: str, text: str) -> Optional[str]:
 def parse_desc(desc: str) -> tuple[str, list[str], list[str]]:
     soup = BeautifulSoup(unquote(desc), "lxml")
 
-    img = [src for i in soup.find_all("img") if (
+    raw_img = [src for i in soup.find_all("img") if (
         src := parse_prop(cast(element.Tag, i.extract()), "src")
     )]
+
+    img = [y[1] for x in raw_img if len(y := x.split("/media/")) == 2]
 
     a_elms = soup.find_all("a")
     links = []

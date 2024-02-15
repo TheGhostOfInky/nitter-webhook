@@ -19,6 +19,10 @@ def clean_link(url: str, instance: str) -> str:
         return url
 
 
+def img_link(id: str) -> str:
+    return f"https://pbs.twimg.com/media/{id}"
+
+
 def create_fields(tweet: Tweet, instance: str) -> list[dict[str, str]]:
     fields: list[dict[str, str]] = []
     images, urls = tweet.images, tweet.urls
@@ -26,7 +30,7 @@ def create_fields(tweet: Tweet, instance: str) -> list[dict[str, str]]:
     for i in images[1::]:
         fields.append({
             "name": "Additional image:",
-            "value": i
+            "value": img_link(i)
         })
 
     for i in urls:
@@ -67,7 +71,7 @@ class Webhook:
 
         if tweet.images:
             embed["image"] = {
-                "url": tweet.images[0]
+                "url": img_link(tweet.images[0])
             }
 
         if tweet.retweeted:
