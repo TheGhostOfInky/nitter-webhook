@@ -1,13 +1,69 @@
 import datetime, pytz, requests
 from bs4 import BeautifulSoup, ResultSet, element
 from urllib.parse import unquote
-from typing import Optional, cast
+from typing import Optional, cast, TypedDict
 
 FMT = r"%a, %d %b %Y %H:%M:%S %Z"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 }
+
+
+class InstanceKey(TypedDict):
+    url: str
+    domain: str
+    points: int
+    rss: bool
+    recent_pings: list[int]
+    ping_max: int
+    ping_min: int
+    ping_avg: int
+    version: str
+    version_url: str
+    healthy: bool
+    last_healthy: str
+    is_upstream: bool
+    is_latest_version: bool
+    is_bad_host: bool
+    country: str
+    recent_checks: list[tuple[str, bool]]
+    healthy_percentage_overall: int
+    connectivity: Optional[str]
+
+
+class APIResponse(TypedDict):
+    hosts: list[InstanceKey]
+    last_update: str
+    latest_commit: str
+
+
+def check_instance_health(instance: InstanceKey) -> bool:
+    if instance["connectivity"] is None:
+        return False
+
+    if not instance["healthy"]:
+        return False
+
+    if not instance["rss"]:
+        return False
+
+    if instance["is_bad_host"]:
+        return False
+
+    return True
+
+
+def get_auto_instance() -> str:
+    resp = cast(APIResponse, requests.get(
+        "https://status.d420.de/api/v1/instances", headers=HEADERS
+    ).json())
+
+    raw_instances = resp["hosts"]
+
+    rss_instances = [x for x in raw_instances if check_instance_health(x)]
+
+    return rss_instances[0]["url"]
 
 
 def parse_elm(res: element.Tag | element.NavigableString | None) -> str:
@@ -90,7 +146,7 @@ class Tweet:
 class TweetStream:
     tweets: list[Tweet]
 
-    def __init__(self, name: str, instance="https://nitter.net") -> None:
+    def __init__(self, name: str, instance: str) -> None:
         resp = requests.get(f"{instance}/{name}/rss", headers=HEADERS)
         if resp.status_code > 299:
             raise Exception(f"Got error response, code {resp.status_code}; {resp.text}")
@@ -111,6 +167,7 @@ __all__ = [
 ]
 
 if __name__ == "__main__":
-    ts = TweetStream("elonmusk")
+    instance = get_auto_instance() or "nitter.net"
+    ts = TweetStream("elonmusk", instance)
 
     print(*ts.tweets, sep="\n")

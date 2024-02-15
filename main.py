@@ -1,14 +1,13 @@
 import os, sched, datetime, logging
-from random import randint
 from itertools import islice
 from typing import Generator, Iterable, TypeVar
-from nitter_wrapper import TweetStream
+from nitter_wrapper import TweetStream, get_auto_instance
 from discord_webhook import Webhook
 from sqlite3_dbdriver import DB
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib
+    import tomli as tomllib  # type:ignore
 
 T = TypeVar("T")
 
@@ -31,13 +30,15 @@ webhook: Webhook
 
 user_name: str = config["user-name"]
 delay: int = config.get("delay", 600)
-instance: str = config.get("instance", "https://nitter.net")
+instance: str = config.get("instance", "auto")
 
 
 def post() -> None:
     global last_time
 
-    tweets = TweetStream(user_name, instance)
+    req_instance = get_auto_instance() if instance == "auto" else instance
+
+    tweets = TweetStream(user_name, req_instance)
     newer = tweets.newer_than(last_time)
 
     now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -47,7 +48,7 @@ def post() -> None:
 
     if newer:
         for tw in batched(newer, 10):
-            webhook.post_to_webhook(tw)
+            webhook.post_to_webhook(tw, req_instance)
 
         logging.info(f"Posted {len(newer)} tweet(s)")
     else:
@@ -83,8 +84,7 @@ if __name__ == "__main__":
     webhook = Webhook(
         config["webhook-url"], user_name,
         config.get("pfp", ""),
-        config.get("ping-roles", []),
-        instance
+        config.get("ping-roles", [])
     )
 
     scheduler = sched.scheduler()

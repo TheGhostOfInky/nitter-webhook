@@ -37,22 +37,20 @@ class Webhook:
     username: str
     pfp: str
     pings: str
-    instance: str
 
     def __init__(self, url: str, username: str,
                  pfp: str, ping_roles: str | list[str],
-                 instance="https://nitter.net") -> None:
+                 ) -> None:
         self.username = username
         self.url = url
         self.pfp = pfp
-        self.instance = instance
 
         if isinstance(ping_roles, str):
             self.pings = f"<@&{ping_roles}>"
         else:
             self.pings = "".join([f"<@&{r}>" for r in ping_roles])
 
-    def create_tweet_embed(self, tweet: Tweet) -> dict:
+    def create_tweet_embed(self, tweet: Tweet, instance: str) -> dict:
         embed: dict[str, Any] = {
             "description": clean_urls(tweet.text),
             "timestamp": tweet.time.isoformat(),
@@ -70,14 +68,14 @@ class Webhook:
             embed["title"] = f"New retweet by @{self.username}"
         else:
             embed["title"] = f"New tweet by @{self.username}"
-            embed["url"] = tweet.link.replace(self.instance, "https://x.com").split("#")[0]
+            embed["url"] = tweet.link.replace(instance, "https://x.com").split("#")[0]
 
         return embed
 
-    def post_to_webhook(self, tweets: list[Tweet]) -> None:
+    def post_to_webhook(self, tweets: list[Tweet], instance: str) -> None:
         params = {
             "content": self.pings,
-            "embeds": [self.create_tweet_embed(x) for x in tweets],
+            "embeds": [self.create_tweet_embed(x, instance) for x in tweets],
             "username": f"@{self.username} - 𝕏",
             "avatar_url": self.pfp
         }
