@@ -54,7 +54,7 @@ def check_instance_health(instance: InstanceKey) -> bool:
     return True
 
 
-def get_auto_instance() -> str:
+def get_auto_instance() -> tuple[str, str]:
     resp = cast(APIResponse, requests.get(
         "https://status.d420.de/api/v1/instances", headers=HEADERS
     ).json())
@@ -63,7 +63,7 @@ def get_auto_instance() -> str:
 
     rss_instances = [x for x in raw_instances if check_instance_health(x)]
 
-    return rss_instances[0]["url"]
+    return rss_instances[0]["url"], rss_instances[0]["domain"]
 
 
 def parse_elm(res: element.Tag | element.NavigableString | None) -> str:
@@ -168,6 +168,6 @@ __all__ = [
 
 if __name__ == "__main__":
     instance = get_auto_instance() or "nitter.net"
-    ts = TweetStream("elonmusk", instance)
+    ts = TweetStream("elonmusk", instance[0])
 
     print(*ts.tweets, sep="\n")

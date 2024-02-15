@@ -38,7 +38,7 @@ def post() -> None:
 
     req_instance = get_auto_instance() if instance == "auto" else instance
 
-    tweets = TweetStream(user_name, req_instance)
+    tweets = TweetStream(user_name, req_instance[0])
     newer = tweets.newer_than(last_time)
 
     now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -48,7 +48,7 @@ def post() -> None:
 
     if newer:
         for tw in batched(newer, 10):
-            webhook.post_to_webhook(tw, req_instance)
+            webhook.post_to_webhook(tw, req_instance[1])
 
         logging.info(f"Posted {len(newer)} tweet(s)")
     else:

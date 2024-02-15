@@ -68,7 +68,10 @@ class Webhook:
             embed["title"] = f"New retweet by @{self.username}"
         else:
             embed["title"] = f"New tweet by @{self.username}"
-            embed["url"] = tweet.link.replace(instance, "https://x.com").split("#")[0]
+            embed["url"] = tweet.link\
+                .replace(instance, "x.com")\
+                .replace("http://", "https://")\
+                .split("#")[0]
 
         return embed
 
