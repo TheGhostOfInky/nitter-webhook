@@ -1,7 +1,7 @@
-from typing import Any, Optional
+from typing import Any
 from nitter_wrapper import Tweet
 from urllib.parse import quote
-import requests, re
+import requests
 
 FOOTER = {
     "text": "Via 𝕏",

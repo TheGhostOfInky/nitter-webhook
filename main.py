@@ -36,7 +36,9 @@ instance: str = config.get("instance", "auto")
 def post() -> None:
     global last_time
 
-    req_instance = get_auto_instance() if instance == "auto" else instance
+    req_instance = get_auto_instance() if instance == "auto" else (
+        instance, instance.split("://")[1]
+    )
 
     tweets = TweetStream(user_name, req_instance[0])
     newer = tweets.newer_than(last_time)
